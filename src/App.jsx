@@ -3,6 +3,7 @@ import Search from './components/Search'
 import { useEffect } from 'react';
 import Spinner from './components/Spinner';
 import MovieCard from './components/MovieCard';
+import { useDebounce} from 'react-use';
 
 const API_BASE_URL = 'https://api.themoviedb.org/3';
 const API_KEY= import.meta.env.VITE_TMBD_API_KEY;
@@ -21,6 +22,16 @@ const App = () => {
   const [errorMessage, setErrorMessage] = React.useState('');
   const [isLoading, setIsLoading] = React.useState(false);
   const [movieList, setMovieList] = React.useState([]);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = React.useState('');
+
+  // Debounce the search term to prevent too many API calls
+  // useDebounce is a custom hook that delays the update of the search term
+  // to the state until after a specified delay (500ms in this case)
+  useDebounce(()=>setDebouncedSearchTerm(searchTerm), 500, [searchTerm]);
+  // useEffect to fetch movies when the debounced search term changes
+
+
+
   const fetchMovies = async (query = '') =>{
     try {
       const endpoint = query ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}`
@@ -43,9 +54,9 @@ const App = () => {
     }
   }
    useEffect(() => {
-    fetchMovies(searchTerm);
+    fetchMovies(debouncedSearchTerm);
 
-   },[searchTerm]);
+   },[debouncedSearchTerm]);
   return (
     <main>
       <div className="pattern"/>
