@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import Spinner from './components/Spinner';
 import MovieCard from './components/MovieCard';
 import { useDebounce} from 'react-use';
-import { updateSearchCount } from './appwrite';
+import { getTrendingMovies, updateSearchCount } from './appwrite';
 
 const API_BASE_URL = 'https://api.themoviedb.org/3';
 const API_KEY= import.meta.env.VITE_TMBD_API_KEY;
@@ -24,6 +24,7 @@ const App = () => {
   const [isLoading, setIsLoading] = React.useState(false);
   const [movieList, setMovieList] = React.useState([]);
   const [debouncedSearchTerm, setDebouncedSearchTerm] = React.useState('');
+  const [trendingMovies, setTrendingMovies] = React.useState([]);
 
   // Debounce the search term to prevent too many API calls
   // useDebounce is a custom hook that delays the update of the search term
@@ -31,7 +32,20 @@ const App = () => {
   useDebounce(()=>setDebouncedSearchTerm(searchTerm), 500, [searchTerm]);
   // useEffect to fetch movies when the debounced search term changes
 
+  const fetchTrendingMovies = async () => {
+    try {
+     
+        const movies = await getTrendingMovies();
+        setTrendingMovies(movies);
+        
 
+      
+    } catch (error) {
+      console.error('Error fetching trending movies:', error);
+      
+      
+    }
+  }
 
   const fetchMovies = async (query = '') =>{
     try {
@@ -63,6 +77,12 @@ const App = () => {
     fetchMovies(debouncedSearchTerm);
 
    },[debouncedSearchTerm]);
+
+   useEffect(() => {
+    fetchTrendingMovies();
+   },[]);
+
+
   return (
     <main>
       <div className="pattern"/>
@@ -76,8 +96,27 @@ const App = () => {
         <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm}/>
         </header>
 
+        {trendingMovies.length > 0 && (
+          <section className='trending'>
+            <h2>
+              Trending Movies
+            </h2>
+            <ul>
+              {trendingMovies.map((movie,index) =>(
+                <li key={movie.$id}>
+                  <p>{index+1}</p>
+                  <img src={movie.poster_url} alt={movie.title} />
+                </li>
+
+              
+              ))}
+            </ul>
+
+          </section>
+        )}
+
         <section className="all-movies">
-          <h2 className='ml-[20px]'>
+          <h2 >
             All Movies
           </h2>
          {isLoading ? (
